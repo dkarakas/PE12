@@ -7,6 +7,22 @@
 #define TRUE 1
 #define FALSE 0
 
+/* bit positions of RGB in a 16-bit representation */
+/* left most bit is most significant and right most bit is least significant */
+/* R: 0111110000000000 */
+/* G: 0000001111100000 */
+/* B: 0000000000011111 */
+
+#define RED_MASK 0x7C00
+#define GREEN_MASK 0x03E0
+#define BLUE_MASK 0x001F
+
+/* position from the least significant position */
+
+#define RED_BIT 10
+#define GREEN_BIT 5
+#define BLUE_BIT 0
+
 #pragma pack(push)  // save the original data alignment
 #pragma pack(1)     // Set data alignment to 1 byte boundary
 
@@ -23,8 +39,6 @@
 
 /** 
  * BMP header (54 bytes).
- * uint16_t is 16-bit unsigned integer
- * uint32_t is 32-bit unsigned integer
  */
 
 typedef struct _BMP_Header {
@@ -53,7 +67,7 @@ typedef struct _BMP_Image {
     unsigned char *data; 
 } BMP_Image;
 
-// Functions to be defined by students
+// functions to be defined by students
 
 // Read BMP_Image from a given file
 //
@@ -71,21 +85,15 @@ int Write_BMP_Image(FILE *fptr, BMP_Image *image);
 //
 void Free_BMP_Image(BMP_Image *image);
 
-// Given a BMP_Image, create a new image that is a reflection
-// of the given image
-// It could be a horizontal reflection (with the vertical mirror 
-// being placed at the center of the image) 
-// It could be a vertical reflection (with the horizontal mirror
-// being placed at the center of the image)
-// It could be a horizontal reflection followed by a vertical
-// reflection (or equivalently, a vertical reflection followed by
-// horizontal reflection).
-// hrefl == 1 implies that a horizontal reflection should take place
-// hrefl == 0 implies that a horizontal reflection should not take place
-// vrefl == 1 implies that a vertical reflection should take place
-// vrefl == 0 implies that a vertical reflection should not take place
+// Given a BMP_Image, create a new 16-bit image that is converted from a given 
+// 24-bit image
 //
-BMP_Image *Reflect_BMP_Image(BMP_Image *image, int hrefl, int vrefl);
+BMP_Image *Convert_24_to_16_BMP_Image(BMP_Image *image);
+
+// Given a BMP_Image, create a new 16-bit image that is converted from a given 
+// 24-bit image
+//
+BMP_Image *Convert_16_to_24_BMP_Image(BMP_Image *image);
 
 // Functions declared for grading purpose
 // Each of the functions has a name that has a prefix "__" 
@@ -98,6 +106,8 @@ int __Write_BMP_Image(FILE *fptr, BMP_Image *image);
 
 void __Free_BMP_Image(BMP_Image *image);
 
-BMP_Image *__Reflect_BMP_Image(BMP_Image *image, int hrefl, int vrefl);
+BMP_Image *__Convert_24_to_16_BMP_Image(BMP_Image *image);
+
+BMP_Image *__Convert_16_to_24_BMP_Image(BMP_Image *image);
 
 #endif /* bmp.h */
