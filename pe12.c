@@ -35,10 +35,10 @@ int main(int argc,char **argv){
     return EXIT_FAILURE;
   }
 
-  if(image->header.bits/8 == 3){
+  if(image->header.bits == 24){
     image = Convert_24_to_16_BMP_Image(image);
-  }else if(image->header.bits/8 == 2){
-    //image = Convert_16_to_24_BMP_Image(BMP_Image *image);
+  }else if(image->header.bits == 16){
+    image = Convert_16_to_24_BMP_Image(image);
   }else{
     fprintf(stderr,"unknown conversion\n"); 
     Free_BMP_Image(image);

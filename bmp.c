@@ -396,7 +396,6 @@ BMP_Image *Convert_24_to_16_BMP_Image(BMP_Image *image){
   return t_image;
 }
 
-///STILL NEED TO IMPLEMENT
 BMP_Image *Convert_16_to_24_BMP_Image(BMP_Image *image){
 
    //find need padding
@@ -407,14 +406,14 @@ BMP_Image *Convert_16_to_24_BMP_Image(BMP_Image *image){
    } 
   
    //Calculate the number of bit in 16 bit picture
-   int bytesPerRow = image->header.width*2;
-   int padNeed_16bit = bytesPerRow % 4;
-   if(padNeed_16bit != 0){
-     padNeed_16bit = 4 - padNeed_16bit;
+   int bytesPerRow = image->header.width*3;
+   int padNeed_24bit = bytesPerRow % 4;
+   if(padNeed_24bit != 0){
+     padNeed_24bit = 4 - padNeed_24bit;
    }
 
-   fprintf(stderr,"padd bits %d\n",padNeed_16bit);
-   // creating a new structure to store 16 bit
+   fprintf(stderr,"padd bits %d\n",padNeed_24bit);
+   // creating a new structure to store 24 bit
    BMP_Image *t_image = NULL;
    if(image != NULL){
      //ALLOC SPACE FOR THE NEW STRUCTURE
@@ -424,7 +423,7 @@ BMP_Image *Convert_16_to_24_BMP_Image(BMP_Image *image){
      }
      t_image->data = NULL;
 
-     t_image->data = (unsigned char *)malloc( image->header.height*(bytesPerRow+padNeed_16bit));
+     t_image->data = (unsigned char *)malloc( image->header.height*(bytesPerRow+padNeed_24bit));
      if(t_image->data==NULL){
        free(t_image);
        fprintf(stderr,"error malloc bmp_image->data");
@@ -433,46 +432,50 @@ BMP_Image *Convert_16_to_24_BMP_Image(BMP_Image *image){
 
      //COPYING THE HEADER INTO THE NEW STRUCTURE
      t_image->header = image->header;
-     t_image->header.bits = 2*8;
-     t_image->header.imagesize = image->header.height*(bytesPerRow+padNeed_16bit);
+     t_image->header.bits = 3*8;
+     t_image->header.imagesize = image->header.height*(bytesPerRow+padNeed_24bit);
      t_image->header.size = t_image->header.imagesize + BMP_HEADER_SIZE;
    } 
 
   //casting the original data arrays into two dimesional row(bytes) and height
-  char (*arrayPic16bit)[bytesPerRow+padNeed_16bit] = (char (*)[bytesPerRow+padNeed_16bit])(t_image->data);
+  char (*arrayPic24bit)[bytesPerRow+padNeed_24bit] = (char (*)[bytesPerRow+padNeed_24bit])(t_image->data);
   char (*originalPicture)[image->header.width*bytePerPixel+padNeed] = (char (*)[image->header.width*bytePerPixel+padNeed])(image->data);
   //variables storing the 24 bit pixels
   unsigned char red;
   unsigned char green;
   unsigned char blue;
-  unsigned int valueFor16Bit=0;
-  int count = 0; //value which will track the positions in the 16 bit image;
-  //used to cast value of the unsgined int valueFor16 bit
+  unsigned int valueFor24Bit=0;
+  int count = 0; //value which will track the positions in the 24 bit image;
+  //used to cast value of the unsgined int valueFor24 bit
   char *insertArray;
 
   int i,j;
   for(i=0; i<t_image->header.height;i++)
-    for(j=t_image->header.width*2-1; j<(t_image->header.width*2+padNeed_16bit);j++)
-          arrayPic16bit[i][j] = 0;
+    for(j=t_image->header.width*3-1; j<(t_image->header.width*3+padNeed_24bit);j++)
+          arrayPic24bit[i][j] = 0;
 
   for(i=0; i < t_image->header.height; i++){
     count=0;
-    for(j=0; j < image->header.width*bytePerPixel;j = j + 3){
-  //     fprintf(stderr,"\n row %d j %d\n",image->header.width*bytePerPixel+padNeed,j);
-       red = originalPicture[i][j+2];
-       green = originalPicture[i][j+1];
-       blue = originalPicture[i][j+0];
-       //adjusting the colors for 16 bit;
-       red = red >> 3;
-       green = blue >> 3;
-       blue = green >> 3;
+    for(j=0; j < image->header.width*bytePerPixel;j = j + 2){
+   //     fprintf(stderr,"\n row %d j %d\n",image->header.width*bytePerPixel+padNeed,j);
+       //taking the middle 5 bits
+       red = originalPicture[i][j+1]>>2;
+       //taking the last 2 bits of the first byte and then taking the first 3 bits of the next byte
+       green = ((originalPicture[i][j+1] & 0x03) << 3) | (((unsigned char)originalPicture[i][j])>>5);
+       //taking the last 5 bits of the last byte
+       blue = originalPicture[i][j]&0x1F;
+       //adjusting the colors for 24 bit;
+       red = ((red)*255)/31;
+       green = ((green)*255)/31;
+       blue = ((blue)*255)/31;
        //store the in a new variable
-       valueFor16Bit = (red << RED_BIT) | (green << GREEN_BIT) | (blue << BLUE_BIT);
-       insertArray = (char *)&valueFor16Bit;      
-       arrayPic16bit[i][count] = insertArray[0];
-       arrayPic16bit[i][count+1] = insertArray[1];
-       count = count + 2;
-       valueFor16Bit = 0;
+       valueFor24Bit = (red << 16) | (green << 8) | (blue << 0);
+       insertArray = (char *)&valueFor24Bit;      
+       arrayPic24bit[i][count] = insertArray[0];
+       arrayPic24bit[i][count+1] = insertArray[1];
+       arrayPic24bit[i][count+2] = insertArray[2];
+       count = count + 3;
+       valueFor24Bit = 0;
     }
   }
   Free_BMP_Image(image);
