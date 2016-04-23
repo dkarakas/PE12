@@ -385,9 +385,6 @@ BMP_Image *Convert_24_to_16_BMP_Image(BMP_Image *image){
        insertArray = (char *)&valueFor16Bit;      
        arrayPic16bit[i][count] = insertArray[0];
        arrayPic16bit[i][count+1] = insertArray[1];
-       print_char_in_bits(insertArray[1]);
-       print_char_in_bits(insertArray[0]);
-       fprintf(stderr,"\n");
        count = count + 2;
        valueFor16Bit = 0;
     }
