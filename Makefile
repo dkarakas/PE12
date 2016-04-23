@@ -1,9 +1,9 @@
-TARGET = pe11
+TARGET = pe12
 GCC = gcc
 DEFINES = -DTEST_DIVIDE -DTEST_INTERLEAVE -DTEST_SHUFFLE
 CFLAGS = -g -Wall -Wshadow -Werror $(DEFINES)
 CC = $(GCC) $(CFLAGS) $(DEFINES)
-SRCS = pe11.c bmp.c 
+SRCS = pe12.c bmp.c 
 OBJS = $(SRCS:%.c=%.o)
 VALGRIND = valgrind --tool=memcheck --verbose --log-file
 
